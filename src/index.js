@@ -83,7 +83,23 @@ app.post('/livros', async (req, res) => {
 
 // ----- TAREFA 4: emprestar / devolver um livro (PUT) -----
 app.put('/livros/:id', async (req, res) => {
-  // Rota para alterar disponibilidade
+  try {
+    const { id } = req.params;
+    const { disponivel } = req.body;
+
+    const livro = await db.get('SELECT * FROM livros WHERE id = ?', [id]);
+
+    if (!livro) {
+      return res.status(404).json({ erro: 'Livro não encontrado.' });
+    }
+
+    await db.run('UPDATE livros SET disponivel = ? WHERE id = ?', [disponivel, id]);
+
+    const atualizado = await db.get('SELECT * FROM livros WHERE id = ?', [id]);
+    res.status(200).json(atualizado);
+  } catch (error) {
+    res.status(500).json({ erro: error.message });
+  }
 });
 
 app.delete('/livros/:id', async (req, res) => {
